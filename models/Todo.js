@@ -9,8 +9,8 @@ const TodoSchema = new mongoose.Schema({
         type:String,
         required: true
     },
-    status:{
-        type:String,
+    active:{
+        type:Boolean,
         required: true
     },
 } ,

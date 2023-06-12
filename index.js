@@ -1,17 +1,15 @@
-// const connectToMongo = require('./db');
 const express = require('express');
 const app = express();   
 const port = 5000
-// connectToMongo();
 require('./db');
+app.use(express.json());
 
 // Using my created routes
 app.use('/todo', require('./routes/todo'))
 
 // Middle ware 
-app.use(express.json())
 
-// Routes
+// Main Route
 app.get('/', (req,res)=>{
     res.send("Hello World")
 })
