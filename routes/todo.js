@@ -4,7 +4,7 @@ const Todo = require("../models/Todo");
 // Validation library
 const { check, validationResult } = require("express-validator");
 
-// Get all the todos
+// Get todos
 router.get("/todos", async (req, res) => {
   try {
     const todos = await Todo.find();
@@ -18,11 +18,11 @@ router.get("/todos", async (req, res) => {
 router.post(
   "/add-todo",
   [
-    check("title", "Title must be between 2-30 char").isLength({
+    check("title", "Title must be between 2-30 char").trim().isLength({
       min: 2,
       max: 30,
     }),
-    check("desc", "desc must be between 2-100 char").isLength({
+    check("desc", "desc must be between 2-100 char").trim().isLength({
       min: 2,
       max: 100,
     }),
@@ -44,12 +44,15 @@ router.post(
 );
 
 // Edit Todo
-router.put("/edit-todo/:id", async (req, res) => {
+router.put("/edit-todo/:id",[
+  check("title", "title can not be empty").trim(),
+  check("desc", "description can not be empty").trim()
+], async (req, res) => {
   try {
     const { title, desc, active } = req.body;
     const updatedTodo = {};
-    if (title & title.length > 1) updatedTodo.title = title;
-    if (desc) updatedTodo.desc = desc; 
+    if (title && title.length) updatedTodo.title = title;
+    if (desc && title.length) updatedTodo.desc = desc; 
     if (active) updatedTodo.active = active;
     const todo = await Todo.findByIdAndUpdate(
       req.params.id,
