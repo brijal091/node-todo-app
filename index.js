@@ -5,7 +5,8 @@ require('./db');
 app.use(express.json());
 
 // Using my created routes
-app.use('/todo', require('./routes/todo'))
+app.use('/todo', require('./routes/todo'));
+app.use('/user', require('./routes/user'));
 
 // Middle ware 
 
