@@ -1,13 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const Todo = require("../models/Todo");
+
+const fetchUser = require("../middlewares/fetchuser");
+
 // Validation library
 const { check, validationResult } = require("express-validator");
 
 // Get todos
-router.get("/todos", async (req, res) => {
+router.get("/todos", fetchUser, async (req, res) => {
   try {
-    const todos = await Todo.find();
+    // console.log(req.userId)
+    const todos = await Todo.find({ user: req.userId });
+    // console.log("Test this user based todos",todos)
     res.json(todos);
   } catch (error) {
     console.log("get todo", error);
@@ -18,6 +23,7 @@ router.get("/todos", async (req, res) => {
 // Create new Todo
 router.post(
   "/add-todo",
+  fetchUser,
   [
     check("title", "Title must be between 2-30 char").trim().isLength({
       min: 2,
@@ -35,7 +41,7 @@ router.post(
     }
     try {
       const { title, desc, active } = req.body;
-      const newTodo = new Todo({ title, desc, active });
+      const newTodo = new Todo({ title, desc, active, user: req.userId });
       await newTodo.save();
       res.status(201).json(newTodo);
     } catch (error) {
@@ -48,6 +54,7 @@ router.post(
 // Edit Todo
 router.put(
   "/edit-todo/:id",
+  fetchUser,
   [
     check("title", "title can not be empty").trim(),
     check("desc", "description can not be empty").trim(),
@@ -55,6 +62,11 @@ router.put(
   async (req, res) => {
     try {
       const { title, desc, active } = req.body;
+      // Check if todo is edited by the same user of todo
+      let user_todo = await Todo.findById(req.params.id);
+      if (user_todo.user !== req.userId) {
+        return res.status.send(401).send("Not allowed");
+      }
       const updatedTodo = {};
       if (title && title.length) updatedTodo.title = title;
       if (desc && title.length) updatedTodo.desc = desc;
@@ -73,8 +85,13 @@ router.put(
 );
 
 // Delete existing todo
-router.delete(`/delete-todo/:id`, async (req, res) => {
+router.delete(`/delete-todo/:id`, fetchUser, async (req, res) => {
   try {
+    // Check if todo is edited by the same user of todo
+    let user_todo = await Todo.findById(req.params.id);
+    if (user_todo.user !== req.userId) {
+      return res.status.send(401).send("Not allowed");
+    }
     const todo = await Todo.findByIdAndDelete(req.params.id);
     if (!todo) res.send("Todo not exist");
     else res.send(todo);
